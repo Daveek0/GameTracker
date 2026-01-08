@@ -1,0 +1,75 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Detail hry</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner></ion-spinner>
+    <p>Načítání...</p>
+  </div>
+
+  <div *ngIf="!isLoading && error" class="error-container">
+    <p>{{ error }}</p>
+    <ion-button (click)="goBack()">Zpět</ion-button>
+  </div>
+
+  <div *ngIf="!isLoading && !error && game" class="game-detail">
+    <div class="game-header">
+      <img 
+        [src]="game.background_image || 'https://via.placeholder.com/800x400?text=No+Image'" 
+        [alt]="game.name"
+        class="game-image"
+        (error)="onImageError($event)" />
+    </div>
+
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ game.name }}</ion-card-title>
+        <ion-card-subtitle *ngIf="game.released">
+          Vydáno: {{ game.released }}
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content>
+        <div class="rating" *ngIf="game.rating">
+          <ion-icon name="star" color="warning"></ion-icon>
+          <span>{{ game.rating | number:'1.1-1' }}</span>
+        </div>
+
+        <div class="description" *ngIf="game.description || game.description_raw">
+          <h3>Popis</h3>
+          <p [innerHTML]="getDescription()"></p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Tlačítka dole -->
+    <div class="action-buttons">
+      <ion-button 
+        expand="block" 
+        fill="outline"
+        color="primary"
+        (click)="goBack()">
+        <ion-icon name="home" slot="start"></ion-icon>
+        Domů
+      </ion-button>
+      <ion-button 
+        expand="block" 
+        fill="outline"
+        [color]="isFavorite ? 'danger' : 'primary'"
+        (click)="toggleFavorite()">
+        <ion-icon 
+          [name]="isFavorite ? 'heart' : 'heart-outline'" 
+          slot="start">
+        </ion-icon>
+        {{ isFavorite ? 'Odebrat z oblíbených' : 'Přidat do oblíbených' }}
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
+

@@ -1,0 +1,80 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      GameTracker
+    </ion-title>
+    <ion-buttons slot="primary">
+      <ion-button routerLink="/favorites" routerLinkActive="active">
+        Favorites
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">GameTracker</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-searchbar
+    [(ngModel)]="searchTerm"
+    (ionInput)="onSearchChange($event)"
+    placeholder="Hledat hry..."
+    debounce="500">
+  </ion-searchbar>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner></ion-spinner>
+    <p>Načítání her...</p>
+  </div>
+
+  <ion-list *ngIf="!isLoading && games.length > 0">
+    <ion-item
+      *ngFor="let game of games"
+      button
+      (click)="openGameDetail(game)">
+      <ion-avatar slot="start">
+        <img 
+          [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
+          [alt]="game.name"
+          (error)="onImageError($event)" />
+      </ion-avatar>
+      <ion-label>
+        <h2>{{ game.name }}</h2>
+        <p *ngIf="game.released">Vydáno: {{ game.released }}</p>
+        <p *ngIf="game.rating">
+          <ion-icon name="star" color="warning"></ion-icon>
+          {{ game.rating | number:'1.1-1' }}
+        </p>
+      </ion-label>
+      <ion-button
+        slot="end"
+        fill="clear"
+        [color]="isFavorite(game.id) ? 'danger' : 'medium'"
+        (click)="toggleFavorite(game, $event)"
+        size="large">
+        <ion-icon [name]="isFavorite(game.id) ? 'heart' : 'heart-outline'" size="large"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="!isLoading && games.length === 0" class="empty-state">
+    <ion-icon name="game-controller-outline" size="large"></ion-icon>
+    <p>Žádné hry nenalezeny</p>
+  </div>
+
+  <!-- Navigační menu -->
+  <div class="bottom-nav">
+    <ion-button expand="block" fill="solid" color="primary" routerLink="/home" routerLinkActive="active">
+      <ion-icon name="home" slot="start"></ion-icon>
+      Domů
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="primary" routerLink="/favorites" routerLinkActive="active">
+      <ion-icon name="heart" slot="start"></ion-icon>
+      Oblíbené
+    </ion-button>
+  </div>
+</ion-content>
+

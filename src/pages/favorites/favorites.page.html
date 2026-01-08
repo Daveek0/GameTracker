@@ -1,0 +1,63 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Oblíbené hry
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Oblíbené hry</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div *ngIf="favoriteGames.length === 0" class="empty-state">
+    <ion-icon name="heart-outline" size="large"></ion-icon>
+    <h2>Žádné oblíbené hry</h2>
+    <p>Přidejte hry do oblíbených z detailu hry</p>
+  </div>
+
+  <ion-list *ngIf="favoriteGames.length > 0">
+    <ion-item
+      *ngFor="let game of favoriteGames"
+      button
+      (click)="openGameDetail(game)">
+      <ion-avatar slot="start">
+        <img 
+          [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
+          [alt]="game.name"
+          (error)="onImageError($event)" />
+      </ion-avatar>
+      <ion-label>
+        <h2>{{ game.name }}</h2>
+        <p *ngIf="game.released">Vydáno: {{ game.released }}</p>
+        <p *ngIf="game.rating">
+          <ion-icon name="star" color="warning"></ion-icon>
+          {{ game.rating | number:'1.1-1' }}
+        </p>
+      </ion-label>
+      <ion-button
+        slot="end"
+        fill="clear"
+        color="danger"
+        (click)="removeFavorite(game, $event)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <!-- Navigační menu -->
+  <div class="bottom-nav">
+    <ion-button expand="block" fill="outline" color="primary" routerLink="/home" routerLinkActive="active">
+      <ion-icon name="home" slot="start"></ion-icon>
+      Domů
+    </ion-button>
+    <ion-button expand="block" fill="solid" color="primary" routerLink="/favorites" routerLinkActive="active">
+      <ion-icon name="heart" slot="start"></ion-icon>
+      Oblíbené
+    </ion-button>
+  </div>
+</ion-content>
+
