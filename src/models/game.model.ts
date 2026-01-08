@@ -1,3 +1,7 @@
+/**
+ * TypeScript modely pro datové struktury aplikace.
+ * Obsahuje rozhraní pro hry, žánry, platformy a jejich API odpovědi.
+ */
 export interface Game {
   id: number;
   name: string;

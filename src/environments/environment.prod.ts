@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  rawgApiKey: 'YOUR_API_KEY' // Získejte klíč na https://rawg.io/apidocs
+  rawgApiKey: '0c674d28c0674e2ca7290a11182dc7a8'
 };
 

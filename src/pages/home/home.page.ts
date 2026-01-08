@@ -1,3 +1,7 @@
+/**
+ * Hlavní dashboard stránka aplikace.
+ * Zobrazuje novinky, platformy, žánry a umožňuje vyhledávání her.
+ */
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';

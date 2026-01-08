@@ -1,3 +1,7 @@
+/**
+ * Služba pro komunikaci s RAWG API.
+ * Poskytuje metody pro načítání her, žánrů, platforem a filtrování podle různých kritérií.
+ */
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';

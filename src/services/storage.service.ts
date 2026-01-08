@@ -1,3 +1,7 @@
+/**
+ * Služba pro správu oblíbených her v lokálním úložišti.
+ * Ukládá a načítá oblíbené hry pomocí LocalStorage API.
+ */
 import { Injectable } from '@angular/core';
 import { Game } from '../models/game.model';
 

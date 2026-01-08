@@ -6,6 +6,12 @@
 /out-tsc
 /bazel-out
 
+# Android build outputs
+/android/app/build/
+/android/build/
+/android/.gradle/
+/android/local.properties
+
 # Node
 /node_modules
 npm-debug.log

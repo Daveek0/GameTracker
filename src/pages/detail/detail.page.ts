@@ -1,3 +1,7 @@
+/**
+ * Stránka s detailními informacemi o vybrané hře.
+ * Zobrazuje popis, obrázek, rating a umožňuje přidání do oblíbených.
+ */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';

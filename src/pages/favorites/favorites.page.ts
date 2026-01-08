@@ -1,3 +1,7 @@
+/**
+ * Stránka s oblíbenými hrami uživatele.
+ * Zobrazuje seznam uložených her a umožňuje jejich odstranění.
+ */
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
