@@ -44,22 +44,43 @@ Aplikace bude dostupná na `http://localhost:4200`
 
 ## 📱 Build pro Android
 
-1. Přidejte Android platformu:
+1. Přidejte Android platformu (pokud ještě není):
 ```bash
 npm install -g @ionic/cli
 ionic capacitor add android
 ```
 
-2. Sestavte aplikaci:
+2. Sestavte webovou aplikaci a synchronizujte s Android projektem:
 ```bash
-ionic build
-ionic capacitor sync android
+npm run build
+npm run cap:sync
+```
+
+Nebo použijte zkrácený příkaz:
+```bash
+npm run android:build
 ```
 
 3. Otevřete projekt v Android Studio:
 ```bash
-ionic capacitor open android
+npm run cap:open
 ```
+
+Nebo přímo:
+```bash
+npx cap open android
+```
+
+4. V Android Studio:
+   - Počkejte, až se projekt načte a synchronizuje
+   - Připojte Android zařízení nebo spusťte emulátor
+   - Klikněte na tlačítko "Run" (▶️) nebo stiskněte Shift+F10
+   - Aplikace se zkompiluje a spustí na zařízení/emulátoru
+
+**Poznámka:** Ujistěte se, že máte nainstalované:
+- Android Studio
+- Android SDK (minimálně API 21)
+- Java JDK
 
 ## 🏗️ Struktura projektu
 

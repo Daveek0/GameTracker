@@ -1,5 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
+    <img src="assets/logo.png" alt="GameTracker Logo" class="header-logo" slot="start" />
     <ion-title>
       Oblíbené hry
     </ion-title>
@@ -53,6 +54,10 @@
     <ion-button expand="block" fill="outline" color="primary" routerLink="/home" routerLinkActive="active">
       <ion-icon name="home" slot="start"></ion-icon>
       Domů
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="primary" routerLink="/trending" routerLinkActive="active">
+      <ion-icon name="flame" slot="start"></ion-icon>
+      Trending
     </ion-button>
     <ion-button expand="block" fill="solid" color="primary" routerLink="/favorites" routerLinkActive="active">
       <ion-icon name="heart" slot="start"></ion-icon>

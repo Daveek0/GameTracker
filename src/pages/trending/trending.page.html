@@ -1,0 +1,85 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <img src="assets/logo.png" alt="GameTracker Logo" class="header-logo" slot="start" />
+    <ion-title>
+      Trending
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Trending</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <!-- Filtr segment -->
+  <ion-segment [(ngModel)]="selectedFilter" (ngModelChange)="onFilterChangeModel($event)" class="filter-segment">
+    <ion-segment-button value="top-rated">
+      <ion-icon name="trophy"></ion-icon>
+      <ion-label>Top Rated</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="popular">
+      <ion-icon name="flame"></ion-icon>
+      <ion-label>Popular</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner></ion-spinner>
+    <p>Načítání her...</p>
+  </div>
+
+  <ion-list *ngIf="!isLoading && games.length > 0">
+    <ion-item
+      *ngFor="let game of games"
+      button
+      (click)="openGameDetail(game)">
+      <ion-avatar slot="start">
+        <img 
+          [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
+          [alt]="game.name"
+          (error)="onImageError($event)" />
+      </ion-avatar>
+      <ion-label>
+        <h2>{{ game.name }}</h2>
+        <p *ngIf="game.released">Vydáno: {{ game.released }}</p>
+        <p *ngIf="game.rating">
+          <ion-icon name="star" color="warning"></ion-icon>
+          {{ game.rating | number:'1.1-1' }}
+        </p>
+      </ion-label>
+      <ion-button
+        slot="end"
+        fill="clear"
+        [color]="isFavorite(game.id) ? 'danger' : 'medium'"
+        (click)="toggleFavorite(game, $event)"
+        size="large">
+        <ion-icon [name]="isFavorite(game.id) ? 'heart' : 'heart-outline'" size="large"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="!isLoading && games.length === 0" class="empty-state">
+    <ion-icon name="game-controller-outline" size="large"></ion-icon>
+    <p>Žádné hry nenalezeny</p>
+  </div>
+
+  <!-- Navigační menu -->
+  <div class="bottom-nav">
+    <ion-button expand="block" fill="outline" color="primary" routerLink="/home" routerLinkActive="active">
+      <ion-icon name="home" slot="start"></ion-icon>
+      Domů
+    </ion-button>
+    <ion-button expand="block" fill="solid" color="primary" routerLink="/trending" routerLinkActive="active">
+      <ion-icon name="flame" slot="start"></ion-icon>
+      Trending
+    </ion-button>
+    <ion-button expand="block" fill="outline" color="primary" routerLink="/favorites" routerLinkActive="active">
+      <ion-icon name="heart" slot="start"></ion-icon>
+      Oblíbené
+    </ion-button>
+  </div>
+</ion-content>
+

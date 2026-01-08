@@ -17,7 +17,7 @@ import { RouterModule } from '@angular/router';
 import { StorageService } from '../../services/storage.service';
 import { Game } from '../../models/game.model';
 import { addIcons } from 'ionicons';
-import { heartOutline, star, trashOutline, home, heart } from 'ionicons/icons';
+import { heartOutline, star, trashOutline, home, heart, flame } from 'ionicons/icons';
 
 @Component({
   selector: 'app-favorites',
@@ -46,7 +46,7 @@ export class FavoritesPage implements OnInit {
     private storageService: StorageService,
     private router: Router
   ) {
-    addIcons({ heartOutline, star, trashOutline, home, heart });
+    addIcons({ heartOutline, star, trashOutline, home, heart, flame });
   }
 
   ngOnInit() {

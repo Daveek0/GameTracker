@@ -1,6 +1,7 @@
 {
   "name": "gametracker",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular"
 }
-

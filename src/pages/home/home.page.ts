@@ -8,22 +8,28 @@ import {
   IonTitle, 
   IonContent, 
   IonSearchbar, 
-  IonList, 
-  IonItem, 
-  IonLabel, 
-  IonAvatar, 
-  IonIcon, 
-  IonSpinner,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
   IonButton,
-  IonButtons
+  IonIcon,
+  IonSpinner,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonAvatar
 } from '@ionic/angular/standalone';
 import { RouterModule } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { StorageService } from '../../services/storage.service';
-import { Game, GameResponse } from '../../models/game.model';
-import { debounceTime, distinctUntilChanged, Subject, switchMap } from 'rxjs';
+import { Game, GameResponse, Genre, Platform } from '../../models/game.model';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, forkJoin } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { star, gameControllerOutline, home, heart, heartOutline } from 'ionicons/icons';
+import { star, gameControllerOutline, home, heart, heartOutline, flame, sparkles, laptop, gameController, trophy, cube, disc } from 'ionicons/icons';
 
 @Component({
   selector: 'app-home',
@@ -39,22 +45,47 @@ import { star, gameControllerOutline, home, heart, heartOutline } from 'ionicons
     IonTitle,
     IonContent,
     IonSearchbar,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonButton,
+    IonIcon,
+    IonSpinner,
+    IonGrid,
+    IonRow,
+    IonCol,
     IonList,
     IonItem,
     IonLabel,
-    IonAvatar,
-    IonIcon,
-    IonSpinner,
-    IonButton,
-    IonButtons
+    IonAvatar
   ]
 })
 export class HomePage implements OnInit {
-  games: Game[] = [];
+  searchGames: Game[] = [];
   searchTerm: string = '';
+  isSearching: boolean = false;
   isLoading: boolean = false;
   favoriteIds: number[] = [];
+  
+  // Dashboard data
+  newReleases: Game[] = [];
+  genres: Genre[] = [];
+  platforms: Platform[] = [];
+  selectedPlatformId: number | null = null;
+  platformGames: Game[] = [];
+  selectedGenreId: number | null = null;
+  genreGames: Game[] = [];
+  
   private searchSubject = new Subject<string>();
+
+  // Platform IDs from RAWG API
+  private readonly PLATFORM_IDS = {
+    PC: 4,
+    Xbox: 1,
+    PlayStation: 18,
+    Switch: 7
+  };
 
   constructor(
     private gameService: GameService,
@@ -62,43 +93,73 @@ export class HomePage implements OnInit {
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {
-    addIcons({ star, gameControllerOutline, home, heart, heartOutline });
+    addIcons({ 
+      star, gameControllerOutline, home, heart, heartOutline, flame, 
+      sparkles, laptop, gameController, trophy, cube, disc
+    });
   }
 
   ngOnInit() {
     this.loadFavorites();
-    this.loadGames();
+    this.loadDashboardData();
 
     // Nastavení debounce pro vyhledávání
     this.searchSubject.pipe(
       debounceTime(500),
       distinctUntilChanged(),
       switchMap(searchTerm => {
-        this.isLoading = true;
+        this.isSearching = true;
         return this.gameService.getGames(searchTerm);
       })
     ).subscribe({
       next: (response: GameResponse) => {
-        this.games = response.results;
+        this.searchGames = response.results;
+        this.isSearching = false;
+      },
+      error: (error) => {
+        console.error('Error searching games', error);
+        this.isSearching = false;
+      }
+    });
+  }
+
+  loadDashboardData() {
+    this.isLoading = true;
+    
+    forkJoin({
+      newReleases: this.gameService.getNewReleases(),
+      genres: this.gameService.getGenres(),
+      platforms: this.gameService.getPlatforms()
+    }).subscribe({
+      next: (data) => {
+        this.newReleases = data.newReleases.results.slice(0, 6);
+        this.genres = data.genres.results.slice(0, 8);
+        this.platforms = data.platforms.results.filter(p => 
+          Object.values(this.PLATFORM_IDS).includes(p.id)
+        );
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading games', error);
+        console.error('Error loading dashboard data', error);
         this.isLoading = false;
       }
     });
   }
 
-  loadGames() {
-    this.isLoading = true;
-    this.gameService.getGames().subscribe({
+  loadPlatformGames(platformId: number) {
+    if (this.selectedPlatformId === platformId) {
+      this.selectedPlatformId = null;
+      this.platformGames = [];
+      return;
+    }
+    
+    this.selectedPlatformId = platformId;
+    this.gameService.getGamesByPlatform(platformId).subscribe({
       next: (response: GameResponse) => {
-        this.games = response.results;
-        this.isLoading = false;
+        this.platformGames = response.results.slice(0, 6);
       },
       error: (error) => {
-        console.error('Error loading games', error);
-        this.isLoading = false;
+        console.error('Error loading platform games', error);
       }
     });
   }
@@ -107,7 +168,7 @@ export class HomePage implements OnInit {
     const value = event.detail.value || '';
     this.searchTerm = value;
     if (value.trim() === '') {
-      this.loadGames();
+      this.searchGames = [];
     } else {
       this.searchSubject.next(value);
     }
@@ -115,6 +176,24 @@ export class HomePage implements OnInit {
 
   openGameDetail(game: Game) {
     this.router.navigate(['/detail', game.id]);
+  }
+
+  loadGenreGames(genreId: number) {
+    if (this.selectedGenreId === genreId) {
+      this.selectedGenreId = null;
+      this.genreGames = [];
+      return;
+    }
+    
+    this.selectedGenreId = genreId;
+    this.gameService.getGamesByGenre(genreId).subscribe({
+      next: (response: GameResponse) => {
+        this.genreGames = response.results.slice(0, 6);
+      },
+      error: (error) => {
+        console.error('Error loading genre games', error);
+      }
+    });
   }
 
   loadFavorites() {
@@ -128,14 +207,11 @@ export class HomePage implements OnInit {
     const index = this.favoriteIds.indexOf(game.id);
     if (index > -1) {
       this.storageService.removeFavorite(game.id);
-      // Vytvořit nové pole pro Angular change detection
       this.favoriteIds = [...this.favoriteIds.filter(id => id !== game.id)];
     } else {
       this.storageService.addFavorite(game);
-      // Vytvořit nové pole pro Angular change detection
       this.favoriteIds = [...this.favoriteIds, game.id];
     }
-    // Vynutit aktualizaci UI
     this.cdr.detectChanges();
   }
 
@@ -149,5 +225,33 @@ export class HomePage implements OnInit {
       img.src = 'https://via.placeholder.com/300x400?text=No+Image';
     }
   }
-}
 
+  onLogoError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      console.error('Logo image failed to load');
+      // Hide the broken image
+      img.style.display = 'none';
+    }
+  }
+
+  getPlatformIcon(platformName: string): string {
+    const name = platformName.toLowerCase();
+    if (name.includes('pc') || name.includes('windows')) return 'laptop';
+    if (name.includes('xbox')) return 'cube';
+    if (name.includes('playstation') || name.includes('ps')) return 'disc';
+    if (name.includes('switch') || name.includes('nintendo')) return 'game-controller';
+    return 'game-controller-outline';
+  }
+
+  getPlatformName(platformId: number): string {
+    const entries = Object.entries(this.PLATFORM_IDS);
+    const entry = entries.find(([_, id]) => id === platformId);
+    return entry ? entry[0] : 'Platform';
+  }
+
+  getGenreName(genreId: number): string {
+    const genre = this.genres.find(g => g.id === genreId);
+    return genre ? genre.name : 'Žánr';
+  }
+}

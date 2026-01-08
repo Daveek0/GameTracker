@@ -1,13 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
+    <img src="assets/logo.png" alt="GameTracker Logo" class="header-logo" slot="start" (error)="onLogoError($event)" />
     <ion-title>
       GameTracker
     </ion-title>
-    <ion-buttons slot="primary">
-      <ion-button routerLink="/favorites" routerLinkActive="active">
-        Favorites
-      </ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -18,6 +14,7 @@
     </ion-toolbar>
   </ion-header>
 
+  <!-- Vyhledávač -->
   <ion-searchbar
     [(ngModel)]="searchTerm"
     (ionInput)="onSearchChange($event)"
@@ -25,44 +22,172 @@
     debounce="500">
   </ion-searchbar>
 
-  <div *ngIf="isLoading" class="loading-container">
-    <ion-spinner></ion-spinner>
-    <p>Načítání her...</p>
+  <!-- Výsledky vyhledávání -->
+  <div *ngIf="searchTerm.trim() && searchGames.length > 0" class="search-results">
+    <h2 class="section-title">Výsledky vyhledávání</h2>
+    <ion-list>
+      <ion-item
+        *ngFor="let game of searchGames"
+        button
+        (click)="openGameDetail(game)">
+        <ion-avatar slot="start">
+          <img 
+            [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
+            [alt]="game.name"
+            (error)="onImageError($event)" />
+        </ion-avatar>
+        <ion-label>
+          <h2>{{ game.name }}</h2>
+          <p *ngIf="game.released">Vydáno: {{ game.released }}</p>
+          <p *ngIf="game.rating">
+            <ion-icon name="star" color="warning"></ion-icon>
+            {{ game.rating | number:'1.1-1' }}
+          </p>
+        </ion-label>
+        <ion-button
+          slot="end"
+          fill="clear"
+          [color]="isFavorite(game.id) ? 'danger' : 'medium'"
+          (click)="toggleFavorite(game, $event)"
+          size="large">
+          <ion-icon [name]="isFavorite(game.id) ? 'heart' : 'heart-outline'" size="large"></ion-icon>
+        </ion-button>
+      </ion-item>
+    </ion-list>
   </div>
 
-  <ion-list *ngIf="!isLoading && games.length > 0">
-    <ion-item
-      *ngFor="let game of games"
-      button
-      (click)="openGameDetail(game)">
-      <ion-avatar slot="start">
-        <img 
-          [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
-          [alt]="game.name"
-          (error)="onImageError($event)" />
-      </ion-avatar>
-      <ion-label>
-        <h2>{{ game.name }}</h2>
-        <p *ngIf="game.released">Vydáno: {{ game.released }}</p>
-        <p *ngIf="game.rating">
-          <ion-icon name="star" color="warning"></ion-icon>
-          {{ game.rating | number:'1.1-1' }}
-        </p>
-      </ion-label>
-      <ion-button
-        slot="end"
-        fill="clear"
-        [color]="isFavorite(game.id) ? 'danger' : 'medium'"
-        (click)="toggleFavorite(game, $event)"
-        size="large">
-        <ion-icon [name]="isFavorite(game.id) ? 'heart' : 'heart-outline'" size="large"></ion-icon>
-      </ion-button>
-    </ion-item>
-  </ion-list>
+  <div *ngIf="isSearching" class="loading-container">
+    <ion-spinner></ion-spinner>
+    <p>Hledám...</p>
+  </div>
 
-  <div *ngIf="!isLoading && games.length === 0" class="empty-state">
-    <ion-icon name="game-controller-outline" size="large"></ion-icon>
-    <p>Žádné hry nenalezeny</p>
+  <!-- Dashboard - zobrazí se jen když není vyhledávání -->
+  <div *ngIf="!searchTerm.trim() && !isLoading" class="dashboard">
+    
+    <!-- Novinky -->
+    <div class="dashboard-section">
+      <h2 class="section-title">
+        <ion-icon name="sparkles"></ion-icon>
+        Novinky
+      </h2>
+      <div class="horizontal-scroll">
+        <ion-card 
+          *ngFor="let game of newReleases" 
+          button 
+          (click)="openGameDetail(game)"
+          class="game-card">
+          <img [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
+               [alt]="game.name"
+               (error)="onImageError($event)" />
+          <ion-card-header>
+            <ion-card-title>{{ game.name }}</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p *ngIf="game.released">{{ game.released }}</p>
+            <p *ngIf="game.rating">
+              <ion-icon name="star" color="warning"></ion-icon>
+              {{ game.rating | number:'1.1-1' }}
+            </p>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- Platformy -->
+    <div class="dashboard-section">
+      <h2 class="section-title">Platformy</h2>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6" size-md="3" *ngFor="let platform of platforms">
+            <ion-card 
+              button 
+              (click)="loadPlatformGames(platform.id)"
+              [class.active]="selectedPlatformId === platform.id"
+              class="platform-card">
+              <ion-card-content>
+                <ion-icon [name]="getPlatformIcon(platform.name)" size="large"></ion-icon>
+                <h3>{{ getPlatformName(platform.id) }}</h3>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Hry pro vybranou platformu -->
+      <div *ngIf="selectedPlatformId && platformGames.length > 0" class="platform-games">
+        <h3 class="subsection-title">Hry pro {{ getPlatformName(selectedPlatformId) }}</h3>
+        <div class="horizontal-scroll">
+          <ion-card 
+            *ngFor="let game of platformGames" 
+            button 
+            (click)="openGameDetail(game)"
+            class="game-card">
+            <img [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
+                 [alt]="game.name"
+                 (error)="onImageError($event)" />
+            <ion-card-header>
+              <ion-card-title>{{ game.name }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p *ngIf="game.rating">
+                <ion-icon name="star" color="warning"></ion-icon>
+                {{ game.rating | number:'1.1-1' }}
+              </p>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- Žánry -->
+    <div class="dashboard-section">
+      <h2 class="section-title">Žánry</h2>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6" size-md="4" size-lg="3" *ngFor="let genre of genres">
+            <ion-card 
+              button 
+              (click)="loadGenreGames(genre.id)"
+              [class.active]="selectedGenreId === genre.id"
+              class="genre-card">
+              <ion-card-content>
+                <h3>{{ genre.name }}</h3>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Hry pro vybraný žánr -->
+      <div *ngIf="selectedGenreId && genreGames.length > 0" class="genre-games">
+        <h3 class="subsection-title">Hry v žánru {{ getGenreName(selectedGenreId) }}</h3>
+        <div class="horizontal-scroll">
+          <ion-card 
+            *ngFor="let game of genreGames" 
+            button 
+            (click)="openGameDetail(game)"
+            class="game-card">
+            <img [src]="game.background_image || 'https://via.placeholder.com/300x400?text=No+Image'" 
+                 [alt]="game.name"
+                 (error)="onImageError($event)" />
+            <ion-card-header>
+              <ion-card-title>{{ game.name }}</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p *ngIf="game.rating">
+                <ion-icon name="star" color="warning"></ion-icon>
+                {{ game.rating | number:'1.1-1' }}
+              </p>
+            </ion-card-content>
+          </ion-card>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading && !searchTerm.trim()" class="loading-container">
+    <ion-spinner></ion-spinner>
+    <p>Načítání...</p>
   </div>
 
   <!-- Navigační menu -->
@@ -71,10 +196,13 @@
       <ion-icon name="home" slot="start"></ion-icon>
       Domů
     </ion-button>
+    <ion-button expand="block" fill="outline" color="primary" routerLink="/trending" routerLinkActive="active">
+      <ion-icon name="flame" slot="start"></ion-icon>
+      Trending
+    </ion-button>
     <ion-button expand="block" fill="outline" color="primary" routerLink="/favorites" routerLinkActive="active">
       <ion-icon name="heart" slot="start"></ion-icon>
       Oblíbené
     </ion-button>
   </div>
 </ion-content>
-

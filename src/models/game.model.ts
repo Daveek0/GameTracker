@@ -15,3 +15,30 @@ export interface GameResponse {
   results: Game[];
 }
 
+export interface Genre {
+  id: number;
+  name: string;
+  slug: string;
+  image_background?: string;
+}
+
+export interface GenreResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Genre[];
+}
+
+export interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface PlatformResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Platform[];
+}
+
